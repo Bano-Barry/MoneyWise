@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import AppLayout from '../layouts/AppLayout';
 import { Plus, Download, Trash2, Edit } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 // Données factices pour les catégories
 const categories = [
@@ -10,26 +12,70 @@ const categories = [
 ];
 
 const ProfilePage = () => {
+    const { user } = useAuth();
+    const [formData, setFormData] = useState({
+        prenom: '',
+        nom: '',
+        email: ''
+    });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                prenom: user.prenom || '',
+                nom: user.nom || '',
+                email: user.email || ''
+            });
+        }
+    }, [user]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        // Logique de mise à jour du profil à implémenter ici
+        console.log('Mise à jour du profil avec :', formData);
+        // toast.success('Profil mis à jour !');
+    };
+
     return (
         <AppLayout title="Profil et Paramètres">
             <div className="space-y-8 max-w-4xl mx-auto">
                 {/* Section Profil Utilisateur */}
                 <div className="bg-background-surface p-6 rounded-lg border border-border">
                     <h2 className="text-xl font-semibold text-text-primary mb-4">Informations Personnelles</h2>
-                    <form className="space-y-4">
-                        <div>
-                            <label className="font-medium text-text-primary">Nom complet</label>
-                            <input
-                                type="text"
-                                defaultValue="Mamadou Bano Barry"
-                                className="w-full mt-2 px-3 py-2 text-text-primary bg-transparent outline-none border focus:border-primary shadow-sm rounded-lg"
-                            />
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="flex gap-x-4">
+                            <div className="w-1/2">
+                                <label className="font-medium text-text-primary">Prénom</label>
+                                <input
+                                    type="text"
+                                    name="prenom"
+                                    value={formData.prenom}
+                                    onChange={handleChange}
+                                    className="w-full mt-2 px-3 py-2 text-text-primary bg-transparent outline-none border focus:border-primary shadow-sm rounded-lg"
+                                />
+                            </div>
+                            <div className="w-1/2">
+                                <label className="font-medium text-text-primary">Nom</label>
+                                <input
+                                    type="text"
+                                    name="nom"
+                                    value={formData.nom}
+                                    onChange={handleChange}
+                                    className="w-full mt-2 px-3 py-2 text-text-primary bg-transparent outline-none border focus:border-primary shadow-sm rounded-lg"
+                                />
+                            </div>
                         </div>
                         <div>
                             <label className="font-medium text-text-primary">Adresse Email</label>
                             <input
                                 type="email"
-                                defaultValue="mamadou@exemple.com"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 className="w-full mt-2 px-3 py-2 text-text-primary bg-transparent outline-none border focus:border-primary shadow-sm rounded-lg"
                             />
                         </div>
