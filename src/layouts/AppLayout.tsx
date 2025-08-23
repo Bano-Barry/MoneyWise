@@ -45,7 +45,7 @@ const SidebarContent = ({ onLinkClick }: SidebarContentProps) => {
     return (
         <div className="flex flex-col h-full">
             <div className="p-4 border-b border-border">
-                <Link to="/dashboard" className="text-2xl font-bold text-text-primary">MoneyWise</Link>
+                <Link to="/" className="text-2xl font-bold text-text-primary">MoneyWise</Link>
             </div>
             <nav className="mt-4 px-2 flex-1">
                 <ul className="space-y-1">
