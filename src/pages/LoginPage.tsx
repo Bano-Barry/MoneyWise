@@ -95,7 +95,7 @@ const LoginPage = () => {
             />
           </div>
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-x-3">
+            {/* <div className="flex items-center gap-x-3">
               <input
                 type="checkbox"
                 id="remember-me"
@@ -107,7 +107,7 @@ const LoginPage = () => {
               >
                 Se souvenir de moi
               </label>
-            </div>
+            </div> */}
             <Link
               to="/forgot-password"
               className="text-center text-primary hover:text-primary-hover"
