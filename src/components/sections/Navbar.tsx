@@ -49,15 +49,24 @@ const Navbar = () => {
                     </div>
                 </div>
                 <div className={`flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden'}`}>
-                    {isAuthenticated ? null : (
-                        <ul className="justify-center items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
-                            {navigation.map((item, idx) => (
-                                <li key={idx} className="text-text-secondary hover:text-primary">
-                                    <a href={item.path} onClick={() => setState(false)}>{item.title}</a>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    <ul className="justify-center items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
+                        {!isAuthenticated ? (
+                            <>
+                                {navigation.map((item, idx) => (
+                                    <li key={idx} className="text-text-secondary hover:text-primary">
+                                        <a href={item.path} onClick={() => setState(false)}>{item.title}</a>
+                                    </li>
+                                ))}
+                            </>
+                        ) : (
+                            <li className="md:hidden">
+                                <Link to="/dashboard" className="flex items-center gap-x-2 w-full px-4 py-2 text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" onClick={() => setState(false)}>
+                                    <LayoutDashboard size={16} />
+                                    Mon espace
+                                </Link>
+                            </li>
+                        )}
+                    </ul>
                 </div>
 
                 <div className="hidden md:flex items-center space-x-4">
@@ -94,6 +103,16 @@ const Navbar = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Menu mobile pour l'utilisateur connecté */}
+                {isAuthenticated && state && (
+                     <div className="md:hidden mt-4 pt-4 border-t border-border">
+                        <button onClick={() => {handleLogout(); setState(false);}} className="w-full text-left flex items-center gap-x-2 px-4 py-2 text-sm text-negative hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                            <LogOut size={16} />
+                            Se déconnecter
+                        </button>
+                    </div>
+                )}
             </div>
         </nav>
     );
