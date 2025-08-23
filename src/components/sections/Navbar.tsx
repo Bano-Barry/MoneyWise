@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { ThemeToggle } from '../ThemeToggle';
+import { useAuth } from '../../contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, LogOut, LayoutDashboard } from 'lucide-react';
 
 const Navbar = () => {
     const [state, setState] = useState(false);
+    const { isAuthenticated, user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [isDropdownOpen, setDropdownOpen] = useState(false);
 
     const navigation = [
         { title: "Fonctionnalités", path: "#features" },
@@ -11,13 +17,19 @@ const Navbar = () => {
         { title: "Contact", path: "#contact" },
     ];
 
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+        setDropdownOpen(false);
+    }
+
     return (
         <nav className="bg-background w-full top-0 z-20 sticky border-b border-border">
             <div className="items-center px-4 max-w-screen-xl mx-auto md:flex md:px-8">
                 <div className="flex items-center justify-between py-3 md:py-5 md:block">
-                    <a href="/">
+                    <Link to={isAuthenticated ? "/dashboard" : "/"}>
                         <h1 className="text-2xl font-bold text-text-primary">MoneyWise</h1>
-                    </a>
+                    </Link>
                     <div className="md:hidden flex items-center space-x-2">
                         <ThemeToggle />
                         <button
@@ -37,25 +49,50 @@ const Navbar = () => {
                     </div>
                 </div>
                 <div className={`flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden'}`}>
-                    <ul className="justify-center items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
-                        {navigation.map((item, idx) => (
-                            <li key={idx} className="text-text-secondary hover:text-primary">
-                                <a href={item.path} onClick={() => setState(false)}>{item.title}</a>
-                            </li>
-                        ))}
-                    </ul>
+                    {isAuthenticated ? null : (
+                        <ul className="justify-center items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
+                            {navigation.map((item, idx) => (
+                                <li key={idx} className="text-text-secondary hover:text-primary">
+                                    <a href={item.path} onClick={() => setState(false)}>{item.title}</a>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <div className="hidden md:flex items-center space-x-4">
                     <div className="hidden md:block">
                         <ThemeToggle />
                     </div>
-                    <a href="/login" className="py-2 px-4 text-white bg-primary hover:bg-primary-hover rounded-md shadow">
-                        Se connecter
-                    </a>
-                    <a href="/register" className="py-2 px-4 text-text-primary bg-background-surface hover:bg-primary-hover hover:text-white rounded-md shadow">
-                        S'inscrire
-                    </a>
+                    {!isAuthenticated ? (
+                        <>
+                            <Link to="/login" className="py-2 px-4 text-white bg-primary hover:bg-primary-hover rounded-md shadow">
+                                Se connecter
+                            </Link>
+                            <Link to="/register" className="py-2 px-4 text-text-primary bg-background-surface hover:bg-primary-hover hover:text-white rounded-md shadow">
+                                S'inscrire
+                            </Link>
+                        </>
+                    ) : (
+                        <div className="relative">
+                            <button onClick={() => setDropdownOpen(!isDropdownOpen)} className="flex items-center gap-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                                <User className="w-6 h-6 text-text-primary" />
+                                <span className="text-text-primary font-medium">{user?.prenom}</span>
+                            </button>
+                            {isDropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-48 bg-background-surface rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                                    <Link to="/dashboard" onClick={() => setDropdownOpen(false)} className="flex items-center gap-x-2 px-4 py-2 text-sm text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <LayoutDashboard size={16} />
+                                        Mon espace
+                                    </Link>
+                                    <button onClick={handleLogout} className="w-full text-left flex items-center gap-x-2 px-4 py-2 text-sm text-negative hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <LogOut size={16} />
+                                        Se déconnecter
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </nav>

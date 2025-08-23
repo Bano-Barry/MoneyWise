@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { register } from "../services/authService";
 import { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,6 @@ const RegisterPage = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -22,19 +22,21 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Les mots de passe ne correspondent pas.");
+      toast.error("Les mots de passe ne correspondent pas.");
       setLoading(false);
       return;
     }
 
     try {
       const { confirmPassword, ...registerData } = formData;
-      await register(registerData);
-      navigate("/login");
+      const response = await register(registerData);
+      toast.success(response.message || "Inscription réussie !");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000); // Laisser le temps de voir le toast
     } catch (err) {
       let errorMessage = "Une erreur est survenue lors de l'inscription.";
       if (err instanceof AxiosError) {
@@ -51,7 +53,7 @@ const RegisterPage = () => {
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -85,11 +87,7 @@ const RegisterPage = () => {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          {error && (
-            <p className="text-center text-negative bg-negative/10 p-2 rounded-lg">
-              {error}
-            </p>
-          )}
+          {/* L'ancien affichage d'erreur est supprimé */}
           <div className="flex gap-x-4">
             <div className="w-1/2">
               <label className="font-medium">Prénom</label>

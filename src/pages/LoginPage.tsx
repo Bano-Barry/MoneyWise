@@ -3,35 +3,48 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { login as loginService } from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
+import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
-      const { utilisateur, token } = await loginService(formData);
+      const { utilisateur, token, message } = await loginService(formData);
       login(utilisateur, token);
+      toast.success(message || "Connexion réussie !");
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Une erreur est survenue lors de la connexion."
-      );
+      let errorMessage = "Une erreur est survenue lors de la connexion.";
+      if (err instanceof AxiosError) {
+        if (err.response) {
+          errorMessage =
+            err.response.data?.message ||
+            `Erreur ${err.response.status}: Le serveur a répondu avec une erreur.`;
+        } else if (err.request) {
+          errorMessage =
+            "Le serveur ne répond pas. Veuillez vérifier votre connexion.";
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -67,11 +80,7 @@ const LoginPage = () => {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          {error && (
-            <p className="text-center text-negative bg-negative/10 p-2 rounded-lg">
-              {error}
-            </p>
-          )}
+          {/* L'ancien affichage d'erreur est supprimé */}
           <div>
             <label className="font-medium">Email</label>
             <input
