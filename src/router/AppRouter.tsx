@@ -8,6 +8,7 @@ import TransactionsPage from '../pages/TransactionsPage';
 import ReportsPage from '../pages/ReportsPage';
 import AddTransactionPage from '../pages/AddTransactionPage';
 import ProfilePage from '../pages/ProfilePage';
+import ProtectedRoute from './ProtectedRoute'; // Importer le composant
 
 const AppRouter = () => {
   return (
@@ -19,12 +20,14 @@ const AppRouter = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        {/* Routes Privées (protégées par l'authentification) */}
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/add-transaction" element={<AddTransactionPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        {/* Routes Privées */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/add-transaction" element={<AddTransactionPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
       </Routes>
     </Router>
   );
