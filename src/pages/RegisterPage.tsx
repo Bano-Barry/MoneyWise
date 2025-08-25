@@ -4,9 +4,15 @@ import { ArrowLeft } from "lucide-react";
 import { register } from "../services/authService";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import type { RegisterData } from "../types";
+
+// Type local pour le formulaire d'inscription
+interface RegisterFormData extends RegisterData {
+  confirmPassword: string;
+}
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -31,6 +37,7 @@ const RegisterPage = () => {
     }
 
     try {
+      // Extraire seulement les champs nécessaires pour l'API
       const { confirmPassword, ...registerData } = formData;
       const response = await register(registerData);
       toast.success(response.message || "Inscription réussie !");
@@ -87,7 +94,6 @@ const RegisterPage = () => {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          {/* L'ancien affichage d'erreur est supprimé */}
           <div className="flex gap-x-4">
             <div className="w-1/2">
               <label className="font-medium">Prénom</label>
@@ -131,7 +137,9 @@ const RegisterPage = () => {
               value={formData.password}
               onChange={handleChange}
               required
+              minLength={6}
               className="w-full mt-2 px-3 py-2 bg-transparent outline-none border focus:border-primary shadow-sm rounded-lg"
+              placeholder="Minimum 6 caractères"
             />
           </div>
           <div>

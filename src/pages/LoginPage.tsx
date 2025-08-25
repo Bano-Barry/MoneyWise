@@ -5,6 +5,7 @@ import { login as loginService } from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import type { LoginErrorResponse } from "../types";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -12,16 +13,22 @@ const LoginPage = () => {
     password: "",
   });
   const [loading, setLoading] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Réinitialiser l'état d'erreur quand l'utilisateur modifie les champs
+    if (emailNotVerified) {
+      setEmailNotVerified(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setEmailNotVerified(false);
 
     try {
       const { utilisateur, token, message } = await loginService(formData);
@@ -29,22 +36,25 @@ const LoginPage = () => {
       toast.success(message || "Connexion réussie !");
       navigate("/dashboard");
     } catch (err) {
-      let errorMessage = "Une erreur est survenue lors de la connexion.";
       if (err instanceof AxiosError) {
-        if (err.response) {
-          errorMessage =
-            err.response.data?.message ||
-            `Erreur ${err.response.status}: Le serveur a répondu avec une erreur.`;
-        } else if (err.request) {
-          errorMessage =
-            "Le serveur ne répond pas. Veuillez vérifier votre connexion.";
-        } else {
-          errorMessage = err.message;
+        if (err.response?.status === 403) {
+          // Email non vérifié
+          const errorData = err.response.data as LoginErrorResponse;
+          if (errorData.emailNonVerifie) {
+            setEmailNotVerified(true);
+            toast.error("Veuillez vérifier votre email avant de vous connecter.");
+            return;
+          }
         }
+        
+        const errorMessage = err.response?.data?.message || 
+          `Erreur ${err.response?.status}: Le serveur a répondu avec une erreur.`;
+        toast.error(errorMessage);
       } else if (err instanceof Error) {
-        errorMessage = err.message;
+        toast.error(err.message);
+      } else {
+        toast.error("Une erreur inattendue s'est produite.");
       }
-      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -79,8 +89,29 @@ const LoginPage = () => {
             </p>
           </div>
         </div>
+        
+        {emailNotVerified && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800 text-sm mb-3">
+              Votre email n'est pas encore vérifié. Veuillez vérifier votre boîte de réception et cliquer sur le lien de vérification.
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  // Rediriger vers la page de renvoi de vérification
+                  navigate("/verify-email", { 
+                    state: { email: formData.email, fromLogin: true } 
+                  });
+                }}
+                className="w-full px-3 py-2 text-sm bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+              >
+                Renvoyer l'email de vérification
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          {/* L'ancien affichage d'erreur est supprimé */}
           <div>
             <label className="font-medium">Email</label>
             <input
@@ -104,19 +135,6 @@ const LoginPage = () => {
             />
           </div>
           <div className="flex items-center justify-between text-sm">
-            {/* <div className="flex items-center gap-x-3">
-              <input
-                type="checkbox"
-                id="remember-me"
-                className="checkbox-item peer"
-              />
-              <label
-                htmlFor="remember-me"
-                className="text-text-secondary cursor-pointer peer-checked:text-primary"
-              >
-                Se souvenir de moi
-              </label>
-            </div> */}
             <Link
               to="/forgot-password"
               className="text-center text-primary hover:text-primary-hover"
