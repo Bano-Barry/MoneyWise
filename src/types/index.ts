@@ -3,7 +3,7 @@ export interface Category {
   utilisateur_id: number;
   nom: string;
   couleur: string;
-  type: 'revenu' | 'depense';
+  type: 'revenu' | 'depense' | 'hybride';
   date_creation: string;
   date_modification: string;
 }
@@ -11,10 +11,16 @@ export interface Category {
 export interface NewCategory {
   nom: string;
   couleur: string;
-  type: 'revenu' | 'depense';
+  type: 'revenu' | 'depense' | 'hybride';
 }
 
 // Types d'authentification alignés avec l'API
+export interface PhotoProfilData {
+  url: string;
+  public_id?: string;
+  type?: 'local' | 'cloudinary';
+}
+
 export interface User {
   id: number;
   email: string;
@@ -24,6 +30,14 @@ export interface User {
   date_creation: string;
   date_modification: string;
   email_verifie: boolean;
+  photo_profil?: string | null;
+}
+
+export interface UploadPhotoResponse {
+  success: boolean;
+  message: string;
+  photo_profil: PhotoProfilData;
+  photo_url: string;
 }
 
 export interface RegisterData {
@@ -87,4 +101,17 @@ export interface LoginErrorResponse {
 
 export interface ApiError {
   message: string;
+}
+
+// Types pour l'export
+export type ExportFormat = 'pdf' | 'csv';
+export type ExportPeriod = 'all' | 'current_month' | 'last_month' | 'current_year' | 'custom';
+
+export interface ExportConfig {
+  format: ExportFormat;
+  period: ExportPeriod;
+  startDate?: string;
+  endDate?: string;
+  includeCategories?: boolean;
+  includeCharts?: boolean;
 }

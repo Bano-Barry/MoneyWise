@@ -16,9 +16,27 @@ import type {
 } from "../types";
 
 // Inscription
-export const register = async (userData: RegisterData): Promise<RegisterResponse> => {
-  const response = await api.post("/auth/register", userData);
-  return response.data;
+export const register = async (userData: RegisterData, profilePhoto?: File): Promise<RegisterResponse> => {
+  if (profilePhoto) {
+    // Si une photo est fournie, utiliser FormData
+    const formData = new FormData();
+    formData.append('firstName', userData.firstName);
+    formData.append('lastName', userData.lastName);
+    formData.append('email', userData.email);
+    formData.append('password', userData.password);
+    formData.append('photo_profil', profilePhoto);
+
+    const response = await api.post("/auth/register", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } else {
+    // Sinon, utiliser JSON normal
+    const response = await api.post("/auth/register", userData);
+    return response.data;
+  }
 };
 
 // Connexion

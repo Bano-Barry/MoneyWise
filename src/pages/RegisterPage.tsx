@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { register } from "../services/authService";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import RegisterPhotoUpload from "../components/RegisterPhotoUpload";
 import type { RegisterData } from "../types";
 
 // Type local pour le formulaire d'inscription
@@ -19,6 +20,7 @@ const RegisterPage = () => {
     password: "",
     confirmPassword: "",
   });
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -39,11 +41,14 @@ const RegisterPage = () => {
     try {
       // Extraire seulement les champs nécessaires pour l'API
       const { confirmPassword, ...registerData } = formData;
-      const response = await register(registerData);
+      
+      // Inscription avec ou sans photo de profil
+      const response = await register(registerData, profilePhoto);
       toast.success(response.message || "Inscription réussie !");
+      
       setTimeout(() => {
         navigate("/login");
-      }, 2000); // Laisser le temps de voir le toast
+      }, 4000); // Laisser le temps de voir le toast
     } catch (err) {
       let errorMessage = "Une erreur est survenue lors de l'inscription.";
       if (err instanceof AxiosError) {
@@ -64,6 +69,10 @@ const RegisterPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePhotoSelect = (file: File | null) => {
+    setProfilePhoto(file);
   };
 
   return (
@@ -94,6 +103,12 @@ const RegisterPage = () => {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {/* Section Photo de Profil */}
+          <div className="text-center">
+            <label className="font-medium text-text-primary mb-4 block">Photo de Profil</label>
+            <RegisterPhotoUpload onPhotoSelect={handlePhotoSelect} />
+          </div>
+          
           <div className="flex gap-x-4">
             <div className="w-1/2">
               <label className="font-medium">Prénom</label>

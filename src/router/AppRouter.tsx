@@ -10,6 +10,8 @@ import TransactionsPage from '../pages/TransactionsPage';
 import ReportsPage from '../pages/ReportsPage';
 import AddTransactionPage from '../pages/AddTransactionPage';
 import ProfilePage from '../pages/ProfilePage';
+import CategoriesPage from '../pages/CategoriesPage';
+import ExportPage from '../pages/ExportPage';
 import ProtectedRoute from './ProtectedRoute'; // Importer le composant
 
 const AppRouter = () => {
@@ -28,7 +30,9 @@ const AppRouter = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/export" element={<ExportPage />} />
           <Route path="/add-transaction" element={<AddTransactionPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>

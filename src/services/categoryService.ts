@@ -11,13 +11,12 @@ export const createCategory = async (categoryData: NewCategory) => {
   return response.data;
 };
 
-// Fonctions à implémenter quand l'API sera prête
-// export const updateCategory = async (id, categoryData) => {
-//   const response = await api.put(`/categories/${id}`, categoryData);
-//   return response.data;
-// };
-//
-// export const deleteCategory = async (id) => {
-//   const response = await api.delete(`/categories/${id}`);
-//   return response.data;
-// };
+export const updateCategory = async (id: number, categoryData: NewCategory) => {
+  const response = await api.put(`/categories/${id}`, categoryData);
+  return response.data;
+};
+
+export const deleteCategory = async (id: number) => {
+  const response = await api.delete(`/categories/${id}`);
+  return response.data;
+};

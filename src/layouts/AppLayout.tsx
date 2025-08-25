@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LineChart, LogOut, Wallet, Menu, X, Settings } from 'lucide-react';
+import { Home, LineChart, LogOut, Wallet, Menu, X, Settings, Tag, Download } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
+import UserAvatar from '../components/UserAvatar';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavLinkProps {
@@ -51,7 +52,9 @@ const SidebarContent = ({ onLinkClick }: SidebarContentProps) => {
                 <ul className="space-y-1">
                     <NavLink to="/dashboard" icon={<Home size={20} />} onClick={onLinkClick}>Tableau de bord</NavLink>
                     <NavLink to="/transactions" icon={<Wallet size={20} />} onClick={onLinkClick}>Transactions</NavLink>
+                    <NavLink to="/categories" icon={<Tag size={20} />} onClick={onLinkClick}>Catégories</NavLink>
                     <NavLink to="/reports" icon={<LineChart size={20} />} onClick={onLinkClick}>Rapports</NavLink>
+                    <NavLink to="/export" icon={<Download size={20} />} onClick={onLinkClick}>Export</NavLink>
                     <NavLink to="/profile" icon={<Settings size={20} />} onClick={onLinkClick}>Paramètres</NavLink>
                 </ul>
             </nav>
@@ -112,9 +115,7 @@ const Header = ({ title, onMenuClick }: HeaderProps) => {
                 <ThemeToggle />
                 <div className="relative">
                     <button className="flex items-center gap-x-2">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                            {user?.prenom?.[0]}{user?.nom?.[0]}
-                        </div>
+                        <UserAvatar user={user} size="md" />
                         <span className="hidden sm:block text-text-primary">{user?.prenom} {user?.nom?.charAt(0)}.</span>
                     </button>
                 </div>
