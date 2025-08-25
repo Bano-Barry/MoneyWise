@@ -56,8 +56,20 @@ export const login = async (credentials: LoginData): Promise<AuthResponse> => {
 
 // Vérification d'email
 export const verifyEmail = async (data: EmailVerificationData): Promise<AuthResponse> => {
-  const response = await api.post("/auth/verify-email", data);
-  return response.data;
+  try {
+    const response = await api.post("/auth/verify-email", data);
+    
+    // Sauvegarder le token immédiatement après vérification
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.utilisateur));
+    }
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Erreur lors de la vérification d\'email:', error);
+    throw new Error(error.response?.data?.message || 'Erreur lors de la vérification d\'email');
+  }
 };
 
 // Renvoyer l'email de vérification
