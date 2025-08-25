@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle, XCircle, Mail } from "lucide-react";
 import { verifyEmail, resendVerification } from "../services/authService";
@@ -17,13 +17,7 @@ const EmailVerificationPage = () => {
 
   const token = searchParams.get('token');
 
-  useEffect(() => {
-    if (token) {
-      handleVerification(token);
-    }
-  }, [token]);
-
-  const handleVerification = async (verificationToken: string) => {
+  const handleVerification = useCallback(async (verificationToken: string) => {
     setLoading(true);
     try {
       const { utilisateur, token: authToken, message } = await verifyEmail({ token: verificationToken });
@@ -45,7 +39,13 @@ const EmailVerificationPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [login, navigate]);
+
+  useEffect(() => {
+    if (token) {
+      handleVerification(token);
+    }
+  }, [token, handleVerification]);
 
   const handleResendVerification = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
