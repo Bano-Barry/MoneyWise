@@ -1,11 +1,13 @@
 import { ThemeProvider } from './contexts/ThemeContext';
 import AppRouter from './router/AppRouter';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
-    <ThemeProvider>
+    <>
       <AppRouter />
-    </ThemeProvider>
+      <Toaster position="bottom-right" reverseOrder={false} />
+    </>
   )
 }
 
