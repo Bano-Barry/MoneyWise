@@ -19,14 +19,23 @@ const EmailVerificationPage = () => {
 
   const handleVerification = useCallback(async (verificationToken: string) => {
     setLoading(true);
+    setVerificationStatus('pending');
+    
     try {
       const { utilisateur, token: authToken, message } = await verifyEmail({ token: verificationToken });
-      login(utilisateur, authToken);
+      
+      // Mettre à jour l'état de vérification AVANT le login
       setVerificationStatus('success');
       toast.success(message || "Email vérifié avec succès !");
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      
+      // Login après avoir mis à jour l'état
+      login(utilisateur, authToken);
+      
+             // Redirection seulement après un délai pour permettre à l'état de se mettre à jour
+       setTimeout(() => {
+         navigate("/dashboard");
+       }, 4000);
+      
     } catch (err) {
       setVerificationStatus('error');
       let errorMessage = "Erreur lors de la vérification de l'email.";
@@ -42,10 +51,10 @@ const EmailVerificationPage = () => {
   }, [login, navigate]);
 
   useEffect(() => {
-    if (token) {
+    if (token && !loading && verificationStatus === 'pending') {
       handleVerification(token);
     }
-  }, [token, handleVerification]);
+  }, [token, handleVerification, loading, verificationStatus]);
 
   const handleResendVerification = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
