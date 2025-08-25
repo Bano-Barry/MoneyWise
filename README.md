@@ -9,7 +9,7 @@ Ce projet contient le code source du frontend pour MoneyWise, une application we
 *   **TypeScript** - Un surensemble de JavaScript qui ajoute un typage statique.
 *   **Tailwind CSS** - Un framework CSS "utility-first" pour un design rapide et personnalisé.
 *   **Recharts** - Une bibliothèque de graphiques pour React.
-*   **React Router** - Pour la gestion des routes côté client.
+*   **React Router** - Pour la gestion des routes côté client.#
 
 ## Démarrage Rapide
 
@@ -34,7 +34,7 @@ Assurez-vous d'avoir [Node.js](https://nodejs.org/) (version 18 ou supérieure) 
     npm install
     ```
 
-### Lancer le serveur de développement
+### Lancer le serveur de développement#
 
 Pour lancer l'application en mode développement, exécutez la commande suivante. L'application se lancera sur `http://localhost:5173`.
 
