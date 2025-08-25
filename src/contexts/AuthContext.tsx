@@ -1,134 +1,97 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { User } from '../types';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { User } from '../types';
+import { getProfile } from '../services/authService';
 
-// Définition du type de l'état d'authentification
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  token: string | null;
+interface AuthContextType {
+    isAuthenticated: boolean;
+    user: User | null;
+    token: string | null;
+    isLoading: boolean;
+    login: (userData: User, userToken: string) => void;
+    logout: () => void;
+    updateUser: (userData: User) => void;
+    checkAuthStatus: () => Promise<void>;
 }
 
-// Définition du contexte
-interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, firstName: string, lastName: string) => Promise<boolean>;
-  logout: () => void;
-}
+const AuthContext = createContext<AuthContextType | null>(null);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [isLoading, setIsLoading] = useState(true);
 
-// Actions pour le reducer
-type AuthAction = 
-  | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
-  | { type: 'LOGOUT' }
-  | { type: 'SET_LOADING'; payload: boolean };
-
-// Reducer pour gérer l'état
-const authReducer = (state: AuthState, action: AuthAction): AuthState => {
-  switch (action.type) {
-    case 'LOGIN_SUCCESS':
-      return {
-        user: action.payload.user,
-        isAuthenticated: true,
-        token: action.payload.token,
-      };
-    case 'LOGOUT':
-      return {
-        user: null,
-        isAuthenticated: false,
-        token: null,
-      };
-    default:
-      return state;
-  }
-};
-
-// Fournisseur du contexte
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(authReducer, {
-    user: null,
-    isAuthenticated: false,
-    token: null,
-  });
+  // Vérifier le statut d'authentification au chargement
+  const checkAuthStatus = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      try {
+        const userData = await getProfile();
+        setUser(userData);
+        setToken(storedToken);
+      } catch (error) {
+        // Token invalide, nettoyer le localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+      }
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    
-    if (token && user) {
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: { user: JSON.parse(user), token }
-      });
-    }
+    checkAuthStatus();
   }, []);
 
-  // Fonction login
-  const login = async (email: string, _password: string): Promise<boolean> => {
-    // Mock - à remplacer par ton appel API
-    if (email && _password) {
-      const user: User = {
-        id: 1, // numéro unique
-        email,
-        firstName: 'Jean',
-        lastName: 'Dupont',
-      };
-      const token = 'mock-jwt-token';
-
+  useEffect(() => {
+    if (token) {
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
-      return true;
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
     }
-    return false;
+  }, [token, user]);
+
+  const login = (userData: User, userToken: string) => {
+    setToken(userToken);
+    setUser(userData);
   };
 
-  // Fonction register
-  const register = async (
-    email: string,
-    _password: string,
-    firstName: string,
-    lastName: string
-  ): Promise<boolean> => {
-    // Mock - à remplacer par ton appel API
-    if (email && _password && firstName && lastName) {
-      const user: User = {
-        id: 1,
-        email,
-        firstName,
-        lastName,
-      };
-      const token = 'mock-jwt-token';
-
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
-      return true;
-    }
-    return false;
-  };
-
-  // Fonction logout
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    dispatch({ type: 'LOGOUT' });
+    setToken(null);
+    setUser(null);
   };
+
+  const updateUser = (userData: User) => {
+    setUser(userData);
+  };
+
+  const isAuthenticated = !!token && !!user;
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      token,
+      isLoading,
+      login, 
+      logout, 
+      updateUser,
+      checkAuthStatus
+    }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-// Hook pour utiliser le contexte
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};
