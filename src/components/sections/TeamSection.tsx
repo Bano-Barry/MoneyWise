@@ -3,12 +3,12 @@ import { Github, Linkedin, User } from 'lucide-react';
 const TeamSection = () => {
     const team = [
         {
-            avatar: null, // Remplacer par "images/team/fatoumata-sarr.jpg"
+            avatar: "images/team/fatou-binetou-sarr.jpg", // Remplacer par "images/team/fatoumata-sarr.jpg"
             name: "Fatoumata Binetou SARR",
             title: "Project Manager",
             desc: "Pilote le projet avec une vision claire et une organisation sans faille pour mener l'équipe vers le succès.",
             linkedin: "#",
-            github: "#",
+            github: "https://github.com/FatouBinetouSARR",
         },
         {
             avatar: "images/team/bano.jpg", // Remplacer par "images/team/mamadou-bano-barry.jpg"
@@ -27,44 +27,44 @@ const TeamSection = () => {
             github: "#",
         },
         {
-            avatar: null, // Remplacer par "images/team/ndeye-toure.jpg"
+            avatar: "images/team/khadi-bachir.jpg", // Remplacer par "images/team/ndeye-toure.jpg"
             name: "Ndeye Khadidiatou Touré",
             title: "Développeuse Frontend",
             desc: "Créative et méticuleuse, elle intègre les designs avec précision pour une interface utilisateur impeccable.",
             linkedin: "#",
-            github: "#",
+            github: "https://github.com/KhadijaBachir",
         },
         {
-            avatar: null, // Remplacer par "images/team/aminata-diane.jpg"
+            avatar: "images/team/amina-diane.jpg", // Remplacer par "images/team/aminata-diane.jpg"
             name: "Aminata DIANE",
-            title: "Développeuse Frontend",
-            desc: "Experte en React et Tailwind, elle transforme les maquettes en interfaces utilisateur fluides et réactives.",
-            linkedin: "#",
-            github: "#",
+            title: "Développeuse Backend",
+            desc: "Experte en base de données et Api.",
+            linkedin: "https://www.linkedin.com/in/aminata-diane-57b4b8327/",
+            github: "aminata-byte",
         },
         {
             avatar: null, // Remplacer par "images/team/moussa-sow.jpg"
             name: "Moussa Sow",
             title: "Développeur Fullstack",
-            desc: "Polyvalent et rigoureux, il navigue avec aisance entre le backend et le frontend pour créer des fonctionnalités robustes.",
+            desc: "Polyvalent et rigoureux, il crée avec aisance des fonctionnalités robustes.",
             linkedin: "#",
             github: "#",
         },
         {
-            avatar: null, // Remplacer par "images/team/faty-niass.jpg"
+            avatar: "images/team/faty-niass.jpeg", // Remplacer par "images/team/faty-niass.jpg"
             name: "Faty Niass",
-            title: "Développeuse Backend",
-            desc: "Architecte des données, elle construit des API solides et performantes pour assurer la fiabilité de l'application.",
+            title: "Développeuse Frontend",
+            desc: "Créative et méticuleuse, elle intègre les designs avec précision pour une interface utilisateur impeccable.",
             linkedin: "#",
-            github: "#",
+            github: "https://github.com/faty20-web",
         },
         {
             avatar: null, // Remplacer par "images/team/mouhamadou-ba.jpg"
             name: "Mouhamadou Alpha Ba",
-            title: "Développeur Fullstack",
+            title: "Développeur Backend",
             desc: "Maître du code de bout en bout, il contribue à toutes les facettes du développement avec une grande expertise.",
-            linkedin: "#",
-            github: "#",
+            linkedin: "https://www.linkedin.com/in/https://www.linkedin.com/in/mouhamadou-alpha-ba-934586285",
+            github: "https://github.com/alphamouhamadou01",
         },
     ];
 
@@ -88,7 +88,7 @@ const TeamSection = () => {
                                         {item.avatar ? (
                                             <img
                                                 src={item.avatar}
-                                                className="w-full h-full object-cover object-center shadow-md rounded-xl"
+                                                className="w-48 h-48 object-cover object-center shadow-md rounded-xl"
                                                 alt={`Avatar de ${item.name}`}
                                             />
                                         ) : (
