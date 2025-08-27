@@ -43,7 +43,7 @@ const RegisterPage = () => {
       const { confirmPassword, ...registerData } = formData;
       
       // Inscription avec ou sans photo de profil
-      const response = await register(registerData, profilePhoto);
+      const response = await register(registerData, profilePhoto || undefined);
       toast.success(response.message || "Inscription réussie !");
       
       setTimeout(() => {

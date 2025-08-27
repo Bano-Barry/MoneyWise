@@ -7,7 +7,7 @@ import { updateProfile, changePassword, updateTheme } from '../services/authServ
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ProfilePhotoUpload from '../components/ProfilePhotoUpload';
-import type { UpdateProfileData, ChangePasswordData, UpdateThemeData } from '../types';
+import type { UpdateProfileData, ChangePasswordData } from '../types';
 
 // Type local pour le formulaire de changement de mot de passe
 interface PasswordFormData extends ChangePasswordData {
@@ -127,7 +127,7 @@ const ProfilePage = () => {
                         <p className="text-text-secondary mb-4">
                             Personnalisez votre profil en ajoutant une photo qui vous représente.
                         </p>
-                        <ProfilePhotoUpload user={user} onPhotoUpdate={handlePhotoUpdate} />
+                        {user && <ProfilePhotoUpload user={user} onPhotoUpdate={handlePhotoUpdate} />}
                     </div>
                 </div>
 

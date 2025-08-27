@@ -1,6 +1,5 @@
 import api from "./api";
 
-// Types pour le dashboard
 export interface DashboardSummary {
   solde: number;
   total_revenus: number;
@@ -12,10 +11,11 @@ export interface DashboardSummary {
     nombre_transactions: number;
   };
   depenses_par_categorie: Array<{
+    categorie_id: number;
     nom_categorie: string;
     couleur_categorie: string;
-    montant_total: string;
     nombre_transactions: number;
+    montant_total: number;
   }>;
   evolution_six_mois: Array<{
     mois: string;
@@ -32,153 +32,169 @@ export interface MonthlyStats {
   solde: number;
 }
 
-export interface CategoryBreakdown {
-  nom_categorie: string;
-  couleur_categorie: string;
-  montant_total: string;
-  nombre_transactions: number;
-  pourcentage: string;
+export interface ChartData {
+  camembert?: Array<{
+    nom: string;
+    valeur: number;
+    couleur: string;
+  }>;
+  ligne?: Array<{
+    mois: string;
+    revenus: number;
+    depenses: number;
+  }>;
+  barres?: Array<{
+    nom: string;
+    valeur: number;
+    couleur: string;
+  }>;
 }
 
-export interface DashboardAlert {
-  type: 'warning' | 'danger' | 'info';
-  message: string;
-  severite: 'low' | 'medium' | 'high';
-}
-
-// Fonction utilitaire pour valider les données numériques
-const validateNumber = (value: any, defaultValue: number = 0): number => {
-  if (value === null || value === undefined || isNaN(value)) {
-    return defaultValue;
-  }
-  const num = parseFloat(value);
-  return isNaN(num) ? defaultValue : num;
-};
-
-// Fonction utilitaire pour valider les chaînes
-const validateString = (value: any, defaultValue: string = ''): string => {
-  return value && typeof value === 'string' ? value : defaultValue;
-};
-
-// Obtenir le résumé du dashboard
 export const getDashboardSummary = async (year?: number, month?: number): Promise<DashboardSummary> => {
-  const params = new URLSearchParams();
-  if (year) params.append('year', year.toString());
-  if (month) params.append('month', month.toString());
+  // Option pour forcer les données de test (à retirer en production)
+  const FORCE_TEST_DATA = false; // Mettre à true pour tester l'affichage
   
-  const response = await api.get(`/dashboard/summary?${params.toString()}`);
-  const data = response.data;
+  if (FORCE_TEST_DATA) {
+    console.log('🧪 Utilisation des données de test forcées');
+    return {
+      solde: 125000,
+      total_revenus: 200000,
+      total_depenses: 75000,
+      statistiques_mensuelles: {
+        total_revenus: 200000,
+        total_depenses: 75000,
+        solde: 125000,
+        nombre_transactions: 15
+      },
+      depenses_par_categorie: [
+        {
+          categorie_id: 1,
+          nom_categorie: 'Alimentation',
+          couleur_categorie: '#EF4444',
+          nombre_transactions: 5,
+          montant_total: 25000
+        },
+        {
+          categorie_id: 2,
+          nom_categorie: 'Transport',
+          couleur_categorie: '#3B82F6',
+          nombre_transactions: 3,
+          montant_total: 15000
+        },
+        {
+          categorie_id: 3,
+          nom_categorie: 'Loisirs',
+          couleur_categorie: '#EC4899',
+          nombre_transactions: 2,
+          montant_total: 10000
+        }
+      ],
+      evolution_six_mois: [
+        { mois: 'Jan', revenus: 180000, depenses: 65000, solde: 115000 },
+        { mois: 'Fév', revenus: 190000, depenses: 70000, solde: 120000 },
+        { mois: 'Mar', revenus: 175000, depenses: 80000, solde: 95000 },
+        { mois: 'Avr', revenus: 200000, depenses: 75000, solde: 125000 },
+        { mois: 'Mai', revenus: 210000, depenses: 85000, solde: 125000 },
+        { mois: 'Juin', revenus: 200000, depenses: 75000, solde: 125000 }
+      ]
+    };
+  }
 
-  // Valider et nettoyer les données
-  return {
-    solde: validateNumber(data.solde),
-    total_revenus: validateNumber(data.total_revenus),
-    total_depenses: validateNumber(data.total_depenses),
-    statistiques_mensuelles: {
-      total_revenus: validateNumber(data.statistiques_mensuelles?.total_revenus),
-      total_depenses: validateNumber(data.statistiques_mensuelles?.total_depenses),
-      solde: validateNumber(data.statistiques_mensuelles?.solde),
-      nombre_transactions: validateNumber(data.statistiques_mensuelles?.nombre_transactions)
-    },
-    depenses_par_categorie: Array.isArray(data.depenses_par_categorie) 
-      ? data.depenses_par_categorie.map((item: any) => ({
-          nom_categorie: validateString(item.nom_categorie, 'Catégorie inconnue'),
-          couleur_categorie: validateString(item.couleur_categorie, '#6B7280'),
-          montant_total: validateString(item.montant_total, '0'),
-          nombre_transactions: validateNumber(item.nombre_transactions)
-        }))
-      : [],
-    evolution_six_mois: Array.isArray(data.evolution_six_mois)
-      ? data.evolution_six_mois.map((item: any) => ({
-          mois: validateString(item.mois, 'Mois inconnu'),
-          revenus: validateNumber(item.revenus),
-          depenses: validateNumber(item.depenses),
-          solde: validateNumber(item.solde)
-        }))
-      : []
-  };
+  try {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    console.log('🌐 Appel API dashboard/summary avec params:', params.toString());
+    const response = await api.get(`/dashboard/summary?${params.toString()}`);
+    console.log('✅ Dashboard summary response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Erreur lors de la récupération du résumé dashboard:', error);
+    console.error('🔍 Détails de l\'erreur:', error.response?.data || error.message);
+    
+    // Retourner des données par défaut en cas d'erreur
+    const fallbackData = {
+      solde: 0,
+      total_revenus: 0,
+      total_depenses: 0,
+      statistiques_mensuelles: {
+        total_revenus: 0,
+        total_depenses: 0,
+        solde: 0,
+        nombre_transactions: 0
+      },
+      depenses_par_categorie: [],
+      evolution_six_mois: []
+    };
+    
+    console.log('🔄 Utilisation des données de fallback:', fallbackData);
+    return fallbackData;
+  }
 };
 
-// Obtenir les statistiques mensuelles
 export const getMonthlyStats = async (month: string): Promise<MonthlyStats> => {
-  const response = await api.get(`/dashboard/monthly-stats?month=${month}`);
-  const data = response.data;
-
-  return {
-    mois: validateString(data.mois),
-    revenus: validateNumber(data.revenus),
-    depenses: validateNumber(data.depenses),
-    solde: validateNumber(data.solde)
-  };
+  try {
+    const response = await api.get(`/dashboard/monthly-stats?month=${month}`);
+    console.log('Monthly stats response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des stats mensuelles:', error);
+    return {
+      mois: month,
+      revenus: 0,
+      depenses: 0,
+      solde: 0
+    };
+  }
 };
 
-// Obtenir la répartition par catégorie
-export const getCategoryBreakdown = async (
-  type: 'depense' | 'revenu' = 'depense',
-  dateDebut?: string,
-  dateFin?: string
-): Promise<CategoryBreakdown[]> => {
-  const params = new URLSearchParams();
-  params.append('type', type);
-  if (dateDebut) params.append('dateDebut', dateDebut);
-  if (dateFin) params.append('dateFin', dateFin);
-  
-  const response = await api.get(`/dashboard/category-breakdown?${params.toString()}`);
-  const data = response.data;
-
-  return Array.isArray(data) 
-    ? data.map((item: any) => ({
-        nom_categorie: validateString(item.nom_categorie, 'Catégorie inconnue'),
-        couleur_categorie: validateString(item.couleur_categorie, '#6B7280'),
-        montant_total: validateString(item.montant_total, '0'),
-        nombre_transactions: validateNumber(item.nombre_transactions),
-        pourcentage: validateString(item.pourcentage, '0')
-      }))
-    : [];
+export const getDashboardStats = async (startDate: string, endDate: string, type?: string) => {
+  try {
+    const params = new URLSearchParams({
+      startDate,
+      endDate
+    });
+    if (type) params.append('type', type);
+    
+    const response = await api.get(`/dashboard/stats?${params.toString()}`);
+    console.log('Dashboard stats response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des stats dashboard:', error);
+    return {};
+  }
 };
 
-// Obtenir les alertes
-export const getDashboardAlerts = async (): Promise<{ alertes: DashboardAlert[] }> => {
-  const response = await api.get('/dashboard/alerts');
-  const data = response.data;
-
-  return {
-    alertes: Array.isArray(data.alertes)
-      ? data.alertes.map((alert: any) => ({
-          type: ['warning', 'danger', 'info'].includes(alert.type) ? alert.type : 'info',
-          message: validateString(alert.message, 'Alerte sans message'),
-          severite: ['low', 'medium', 'high'].includes(alert.severite) ? alert.severite : 'low'
-        }))
-      : []
-  };
+export const getChartData = async (startDate: string, endDate: string, chartType?: string): Promise<ChartData> => {
+  try {
+    const params = new URLSearchParams({
+      startDate,
+      endDate
+    });
+    if (chartType) params.append('chartType', chartType);
+    
+    const response = await api.get(`/dashboard/charts?${params.toString()}`);
+    console.log('Chart data response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données graphiques:', error);
+    return {};
+  }
 };
 
-// Obtenir les données pour les graphiques
-export const getChartData = async (
-  startDate: string,
-  endDate: string,
-  chartType?: 'pie' | 'line' | 'bar'
-): Promise<any> => {
-  const params = new URLSearchParams();
-  params.append('startDate', startDate);
-  params.append('endDate', endDate);
-  if (chartType) params.append('chartType', chartType);
-  
-  const response = await api.get(`/dashboard/charts?${params.toString()}`);
-  return response.data;
-};
-
-// Obtenir les statistiques détaillées
-export const getDetailedStats = async (
-  startDate: string,
-  endDate: string,
-  type?: 'category' | 'trend' | 'balance'
-): Promise<any> => {
-  const params = new URLSearchParams();
-  params.append('startDate', startDate);
-  params.append('endDate', endDate);
-  if (type) params.append('type', type);
-  
-  const response = await api.get(`/dashboard/stats?${params.toString()}`);
-  return response.data;
+export const getCategoryBreakdown = async (type?: string, startDate?: string, endDate?: string) => {
+  try {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await api.get(`/dashboard/category-breakdown?${params.toString()}`);
+    console.log('Category breakdown response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la répartition par catégorie:', error);
+    return [];
+  }
 };

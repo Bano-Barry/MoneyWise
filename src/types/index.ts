@@ -115,3 +115,30 @@ export interface ExportConfig {
   includeCategories?: boolean;
   includeCharts?: boolean;
 }
+
+// Types pour les transactions
+export interface Transaction {
+  id: number;
+  montant: number;
+  description?: string;
+  type: 'revenu' | 'depense';
+  date_creation: string;
+  date_transaction: string;
+  utilisateur_id: number;
+  categorie_id: number;
+}
+
+export interface CreateTransactionData {
+  montant: number;
+  description?: string;
+  type: 'revenu' | 'depense';
+  utilisateur_id: number;
+  categorie_id: number;
+}
+
+export interface UpdateTransactionData {
+  montant?: number;
+  description?: string;
+  type?: 'revenu' | 'depense';
+  categorie_id?: number;
+}

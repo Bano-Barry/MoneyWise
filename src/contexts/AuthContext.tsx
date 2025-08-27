@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '../types';
 import { getProfile } from '../services/authService';
 
+import { usePersistentAuth } from '../hooks/usePersistentAuth';
+
 interface AuthContextType {
     isAuthenticated: boolean;
     user: User | null;
@@ -16,61 +18,93 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Utiliser le hook de persistance pour gérer l'état
+  const {
+    user,
+    token,
+    isAuthenticated,
+    login: persistentLogin,
+    logout: persistentLogout,
+    updateUser: persistentUpdateUser,
+    saveUser,
+    clearAuth
+  } = usePersistentAuth();
 
   // Vérifier le statut d'authentification au chargement
   const checkAuthStatus = async () => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
+    
+    
+    // Si on a déjà les données en mémoire, on peut les utiliser immédiatement
+    if (user && token) {
+      try {
+        // Vérifier avec l'API si le token est toujours valide
+        const userData = await getProfile();
+        saveUser(userData);
+      } catch (error) {
+        console.error('Token invalide, nettoyage...', error);
+        clearAuth();
+      }
+      setIsLoading(false);
+      return;
+    }
+    
+    // Vérifier si le token est présent
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+    
+    if (token && user) {
+      try {
+        // Vérifier avec l'API si le token est toujours valide
+        const userData = await getProfile();
+        saveUser(userData);
+      } catch (error) {
+        console.error('Erreur lors de la vérification du token:', error);
+        clearAuth();
+      }
+    } else if (token && !user) {
+      // Token présent mais pas de données utilisateur, essayer de les récupérer
       try {
         const userData = await getProfile();
-        setUser(userData);
-        setToken(storedToken);
+        saveUser(userData);
       } catch (error) {
-        // Token invalide, nettoyer le localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setToken(null);
-        setUser(null);
+        console.error('Erreur lors de la récupération des données utilisateur:', error);
+        clearAuth();
       }
     }
     setIsLoading(false);
   };
 
+  // Effet pour vérifier l'authentification au chargement uniquement
   useEffect(() => {
     checkAuthStatus();
-  }, []);
+  }, []); // Pas de dépendances pour éviter les boucles infinies
 
+  // Effet pour synchroniser l'état quand les données changent (avec debounce)
   useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-      if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
+    const timeoutId = setTimeout(() => {
+      if (user && token) {
+        // Synchronisation des données utilisateur
       }
-    } else {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-    }
-  }, [token, user]);
+    }, 100); // Debounce de 100ms
+
+    return () => clearTimeout(timeoutId);
+  }, [user?.id, token]); // Seulement sur les changements importants
 
   const login = (userData: User, userToken: string) => {
-    setToken(userToken);
-    setUser(userData);
+    persistentLogin(userData, userToken);
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
+    persistentLogout();
   };
 
   const updateUser = (userData: User) => {
-    setUser(userData);
+    persistentUpdateUser(userData);
   };
-
-  const isAuthenticated = !!token && !!user;
 
   return (
     <AuthContext.Provider value={{ 

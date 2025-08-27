@@ -30,6 +30,9 @@ export default function ExpensePieChart({ data }: ExpensePieChartProps) {
   /*  ⬇  empêchera tout rendu côté SSR / double rendu strict-mode */
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+  
+  console.log('📊 ExpensePieChart - Données reçues:', JSON.stringify(data, null, 2));
+  
   if (!mounted) return null
 
   // Transformer les données pour le graphique avec contrôles
@@ -44,6 +47,8 @@ export default function ExpensePieChart({ data }: ExpensePieChartProps) {
       };
     })
     .filter(item => item.value > 0); // Ne garder que les valeurs positives
+
+  console.log('📊 ExpensePieChart - Données transformées:', JSON.stringify(chartData, null, 2));
 
   // Si pas de données, afficher un message
   if (chartData.length === 0) {

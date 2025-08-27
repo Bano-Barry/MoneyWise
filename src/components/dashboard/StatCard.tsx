@@ -1,4 +1,13 @@
-const StatCard = ({ title, value, icon, color }) => {
+import React from 'react';
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  color: string;
+}
+
+const StatCard = ({ title, value, icon, color }: StatCardProps) => {
     return (
         <div className="bg-background-surface p-6 rounded-lg border border-border flex items-center gap-x-4">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color}`}>

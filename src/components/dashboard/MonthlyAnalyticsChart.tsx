@@ -16,6 +16,8 @@ const MonthlyAnalyticsChart = ({ data }: MonthlyAnalyticsChartProps) => {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    console.log('📈 MonthlyAnalyticsChart - Données reçues:', JSON.stringify(data, null, 2));
+
     if (!mounted) {
         return <div className="bg-background-surface p-6 rounded-lg border border-border h-[400px]"></div>; // Placeholder
     }
@@ -29,6 +31,8 @@ const MonthlyAnalyticsChart = ({ data }: MonthlyAnalyticsChartProps) => {
             depenses: item.depenses && !isNaN(item.depenses) ? item.depenses : 0
         }))
         .filter(item => item.revenus > 0 || item.depenses > 0); // Ne garder que les mois avec des données
+
+    console.log('📈 MonthlyAnalyticsChart - Données transformées:', JSON.stringify(chartData, null, 2));
 
     // Si pas de données, afficher un message
     if (chartData.length === 0) {

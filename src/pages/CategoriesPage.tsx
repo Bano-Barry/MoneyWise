@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '../layouts/AppLayout';
 import { Plus, Edit, Trash2, Tag } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import type { Category, NewCategory } from '../types';
 
 const CategoriesPage = () => {
-    const { user } = useAuth();
+
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +27,7 @@ const CategoriesPage = () => {
         setLoading(true);
         try {
             const data = await getCategories();
-            setCategories(data.categories || []);
+            setCategories(Array.isArray(data) ? data : []);
         } catch (error) {
             toast.error("Erreur lors de la récupération des catégories.");
             console.error(error);
