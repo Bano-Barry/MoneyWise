@@ -3,7 +3,7 @@ import type { ExportConfig } from "../types";
 
 // Export des transactions
 export const exportTransactions = async (config: ExportConfig): Promise<any> => {
-  const { format, period, startDate, endDate } = config;
+  const { format, startDate, endDate } = config;
   
   // Construire les paramètres de requête
   const params = new URLSearchParams();
@@ -22,7 +22,7 @@ export const exportTransactions = async (config: ExportConfig): Promise<any> => 
 
 // Export des rapports
 export const exportReports = async (config: ExportConfig): Promise<any> => {
-  const { format, period, startDate, endDate } = config;
+  const { format, startDate, endDate } = config;
   
   // Construire les paramètres de requête
   const params = new URLSearchParams();

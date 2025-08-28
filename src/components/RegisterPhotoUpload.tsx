@@ -8,7 +8,7 @@ interface RegisterPhotoUploadProps {
 
 const RegisterPhotoUpload = ({ onPhotoSelect }: RegisterPhotoUploadProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

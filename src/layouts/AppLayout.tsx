@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LineChart, LogOut, Wallet, Menu, X, Settings, Tag, Download } from 'lucide-react';
+import { Home, LineChart, LogOut, Wallet, Menu, Settings, Tag, Download } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import UserAvatar from '../components/UserAvatar';
 import { useAuth } from '../contexts/AuthContext';
@@ -113,13 +113,15 @@ const Header = ({ title, onMenuClick }: HeaderProps) => {
             </div>
             <div className="flex items-center gap-x-4">
                 <ThemeToggle />
-                <div className="relative">
-                    <button className="flex items-center gap-x-2">
-                        <UserAvatar user={user} size="md" />
-                        <span className="hidden sm:block text-text-primary">{user?.prenom} {user?.nom?.charAt(0)}.</span>
-                    </button>
-                </div>
-                 <button onClick={handleLogout} className="hidden sm:flex text-text-secondary hover:text-negative">
+                {user && (
+                    <div className="relative">
+                        <button className="flex items-center gap-x-2">
+                            <UserAvatar user={user} size="md" />
+                            <span className="hidden sm:block text-text-primary">{user.prenom} {user.nom?.charAt(0)}.</span>
+                        </button>
+                    </div>
+                )}
+                <button onClick={handleLogout} className="hidden sm:flex text-text-secondary hover:text-negative">
                     <LogOut size={20} />
                 </button>
             </div>

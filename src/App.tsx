@@ -1,4 +1,3 @@
-import { ThemeProvider } from './contexts/ThemeContext';
 import AppRouter from './router/AppRouter';
 import { Toaster } from 'react-hot-toast';
 

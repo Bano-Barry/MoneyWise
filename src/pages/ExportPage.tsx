@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import AppLayout from '../layouts/AppLayout';
 import { Download, FileText, Calendar, Filter, FileSpreadsheet } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { exportTransactions } from '../services/exportService';
 import toast from 'react-hot-toast';
 import type { ExportFormat, ExportPeriod } from '../types';
 
 const ExportPage = () => {
-    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [exportConfig, setExportConfig] = useState({
         format: 'pdf' as ExportFormat,
