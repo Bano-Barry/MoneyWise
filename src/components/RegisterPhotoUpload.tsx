@@ -8,7 +8,7 @@ interface RegisterPhotoUploadProps {
 
 const RegisterPhotoUpload = ({ onPhotoSelect }: RegisterPhotoUploadProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [, setSelectedFile] = useState<File | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,13 +33,11 @@ const RegisterPhotoUpload = ({ onPhotoSelect }: RegisterPhotoUploadProps) => {
     };
     reader.readAsDataURL(file);
 
-    setSelectedFile(file);
     onPhotoSelect(file);
   };
 
   const handleRemovePhoto = () => {
     setPreviewUrl(null);
-    setSelectedFile(null);
     onPhotoSelect(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';

@@ -1,54 +1,217 @@
-import AppLayout from '../layouts/AppLayout';
+import React, { useState, useEffect, useMemo } from 'react';
+import { getDashboardSummary } from '../services/dashboardService';
+import { getTransactions as getTransactionsService } from '../services/transactionService';
+import { getCategories as getCategoriesService } from '../services/categoryService';
 import StatCard from '../components/dashboard/StatCard';
-import { Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 import ExpensePieChart from '../components/dashboard/ExpensePieChart';
 import MonthlyAnalyticsChart from '../components/dashboard/MonthlyAnalyticsChart';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
+import { TrendingUp, TrendingDown, Wallet, BarChart3 } from 'lucide-react';
+import AppLayout from '../layouts/AppLayout';
+import type { Transaction, Category } from '../types';
+import type { DashboardSummary } from '../services/dashboardService';
+
+// Composant optimisé pour les statistiques
+const DashboardStats = React.memo(({ safeData }: { safeData: any }) => {
+    const formatCurrency = (value: number) => {
+        return `${value.toLocaleString('fr-FR')} F CFA`;
+    };
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard 
+                title="Solde Actuel"
+                value={safeData ? formatCurrency(safeData.solde) : "0 F CFA"}
+                icon={<Wallet className="w-6 h-6 text-white" />}
+                color="bg-primary"
+            />
+            <StatCard 
+                title="Revenus du Mois"
+                value={safeData ? formatCurrency(safeData.statistiques_mensuelles.total_revenus) : "0 F CFA"}
+                icon={<TrendingUp className="w-6 h-6 text-white" />}
+                color="bg-positive"
+            />
+            <StatCard 
+                title="Dépenses du Mois"
+                value={safeData ? formatCurrency(safeData.statistiques_mensuelles.total_depenses) : "0 F CFA"}
+                icon={<TrendingDown className="w-6 h-6 text-white" />}
+                color="bg-negative"
+            />
+            <StatCard 
+                title="Transactions"
+                value={safeData ? safeData.statistiques_mensuelles.nombre_transactions.toString() : "0"}
+                icon={<BarChart3 className="w-6 h-6 text-white" />}
+                color="bg-secondary"
+            />
+        </div>
+    );
+});
+
+// Composant optimisé pour les graphiques
+const DashboardCharts = React.memo(({ safeData, transactions }: { safeData: any, transactions: Transaction[] }) => {
+    const pieData = useMemo(() => {
+        if (!safeData?.depenses_par_categorie) return [];
+        
+        return safeData.depenses_par_categorie.map((item: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            nom_categorie: item.nom_categorie || 'Catégorie inconnue',
+            couleur_categorie: item.couleur_categorie || '#6B7280',
+            montant_total: item.montant_total ? String(item.montant_total) : '0',
+            nombre_transactions: typeof item.nombre_transactions === 'string' ? parseInt(item.nombre_transactions) : (item.nombre_transactions || 0)
+        }));
+    }, [safeData?.depenses_par_categorie]);
+
+    const lineData = useMemo(() => {
+        if (!safeData?.evolution_six_mois) return [];
+        
+        let data = safeData.evolution_six_mois.map((item: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            mois: item.mois || 'Mois inconnu',
+            revenus: typeof item.revenus === 'string' ? parseFloat(item.revenus) : (item.revenus || 0),
+            depenses: typeof item.depenses === 'string' ? parseFloat(item.depenses) : (item.depenses || 0),
+            solde: typeof item.solde === 'string' ? parseFloat(item.solde) : (item.solde || 0)
+        }));
+        
+        // Si les données sont incomplètes, calculer à partir des transactions
+        if (data.length > 0 && data.every((item: any) => item.revenus === 0 && item.depenses === 0)) {
+            const transactionsByMonth = new Map();
+            
+            if (Array.isArray(transactions)) {
+                transactions.forEach(transaction => {
+                    const date = new Date(transaction.date_transaction || transaction.date_creation);
+                    const monthKey = date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+                    
+                    if (!transactionsByMonth.has(monthKey)) {
+                        transactionsByMonth.set(monthKey, { revenus: 0, depenses: 0 });
+                    }
+                    
+                    const montant = parseFloat(String(transaction.montant || '0'));
+                    if (transaction.type === 'revenu') {
+                        transactionsByMonth.get(monthKey).revenus += montant;
+                    } else if (transaction.type === 'depense') {
+                        transactionsByMonth.get(monthKey).depenses += montant;
+                    }
+                });
+            }
+            
+            data = data.map((item: any) => {
+                const monthData = transactionsByMonth.get(item.mois) || { revenus: 0, depenses: 0 };
+                return {
+                    mois: item.mois,
+                    revenus: monthData.revenus,
+                    depenses: monthData.depenses,
+                    solde: monthData.revenus - monthData.depenses
+                };
+            });
+        }
+        
+        return data;
+    }, [safeData?.evolution_six_mois, transactions]);
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-2">
+                <ExpensePieChart data={pieData} />
+            </div>
+            <div className="lg:col-span-3">
+                <MonthlyAnalyticsChart data={lineData} />
+            </div>
+        </div>
+    );
+});
 
 const DashboardPage = () => {
+    const [loading, setLoading] = useState(true);
+    const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    // Fonction pour sécuriser les données du dashboard
+    const getSafeDashboardData = useMemo(() => {
+        if (!dashboardData) return null;
+        
+        // Parser les statistiques mensuelles si c'est une chaîne
+        let statistiquesMensuelles = {
+            total_revenus: 0,
+            total_depenses: 0,
+            solde: 0,
+            nombre_transactions: 0
+        };
+        
+        if (typeof dashboardData.statistiques_mensuelles === 'string') {
+            // Format: "(56000.00,145000.00,-89000.00,5)"
+            const match = (dashboardData.statistiques_mensuelles as string).match(/\(([^,]+),([^,]+),([^,]+),([^)]+)\)/);
+            if (match) {
+                statistiquesMensuelles = {
+                    total_revenus: parseFloat(match[1]) || 0,
+                    total_depenses: parseFloat(match[2]) || 0,
+                    solde: parseFloat(match[3]) || 0,
+                    nombre_transactions: parseInt(match[4]) || 0
+                };
+            }
+        } else if (dashboardData.statistiques_mensuelles) {
+            statistiquesMensuelles = {
+                total_revenus: dashboardData.statistiques_mensuelles.total_revenus && !isNaN(dashboardData.statistiques_mensuelles.total_revenus) ? dashboardData.statistiques_mensuelles.total_revenus : 0,
+                total_depenses: dashboardData.statistiques_mensuelles.total_depenses && !isNaN(dashboardData.statistiques_mensuelles.total_depenses) ? dashboardData.statistiques_mensuelles.total_depenses : 0,
+                solde: dashboardData.statistiques_mensuelles.solde && !isNaN(dashboardData.statistiques_mensuelles.solde) ? dashboardData.statistiques_mensuelles.solde : 0,
+                nombre_transactions: dashboardData.statistiques_mensuelles.nombre_transactions && !isNaN(dashboardData.statistiques_mensuelles.nombre_transactions) ? dashboardData.statistiques_mensuelles.nombre_transactions : 0
+            };
+        }
+        
+        return {
+            ...dashboardData,
+            solde: dashboardData.solde && !isNaN(dashboardData.solde) ? dashboardData.solde : 0,
+            total_revenus: dashboardData.total_revenus && !isNaN(dashboardData.total_revenus) ? dashboardData.total_revenus : 0,
+            total_depenses: dashboardData.total_depenses && !isNaN(dashboardData.total_depenses) ? dashboardData.total_depenses : 0,
+            statistiques_mensuelles: statistiquesMensuelles
+        };
+    }, [dashboardData]);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                
+                const [summaryData, transactionsData, categoriesData] = await Promise.all([
+                    getDashboardSummary(),
+                    getTransactionsService(),
+                    getCategoriesService()
+                ]);
+                
+                setDashboardData(summaryData);
+                setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
+                setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+            } catch (error) {
+                console.error('Erreur lors du chargement du dashboard:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return (
+            <AppLayout title="Tableau de bord">
+                <div className="flex items-center justify-center h-16">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                </div>
+            </AppLayout>
+        );
+    }
+
     return (
         <AppLayout title="Tableau de bord">
             <div className="space-y-8">
-                <div>
-                    <h2 className="text-xl font-semibold text-text-primary">Bonjour Mamadou, bienvenue !</h2>
-                    <p className="mt-2 text-text-secondary">Voici un aperçu de vos finances pour le mois de Juillet.</p>
-                </div>
+                <DashboardStats safeData={getSafeDashboardData} />
                 
-                {/* Cartes de statistiques */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <StatCard 
-                        title="Solde Actuel"
-                        value="812 500 FCFA"
-                        icon={<Wallet className="w-6 h-6 text-white" />}
-                        color="bg-primary"
-                    />
-                    <StatCard 
-                        title="Revenus du Mois"
-                        value="1 200 000 FCFA"
-                        icon={<TrendingUp className="w-6 h-6 text-white" />}
-                        color="bg-positive"
-                    />
-                    <StatCard 
-                        title="Dépenses du Mois"
-                        value="387 500 FCFA"
-                        icon={<TrendingDown className="w-6 h-6 text-white" />}
-                        color="bg-negative"
-                    />
-                </div>
-
-                {/* Graphiques */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                    <div className="lg:col-span-2">
-                        <ExpensePieChart />
-                    </div>
-                    <div className="lg:col-span-3">
-                        <MonthlyAnalyticsChart />
-                    </div>
-                </div>
+                <DashboardCharts safeData={getSafeDashboardData} transactions={transactions} />
 
                 {/* Transactions récentes */}
                 <div>
-                    <RecentTransactions />
+                    <RecentTransactions 
+                        transactions={Array.isArray(transactions) ? transactions.slice(0, 5) : []}
+                        categories={Array.isArray(categories) ? categories : []}
+                    />
                 </div>
             </div>
         </AppLayout>

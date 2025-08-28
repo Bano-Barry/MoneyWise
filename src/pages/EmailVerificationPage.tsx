@@ -28,13 +28,16 @@ const EmailVerificationPage = () => {
       setVerificationStatus('success');
       toast.success(message || "Email vérifié avec succès !");
       
-      // Login après avoir mis à jour l'état
-      login(utilisateur, authToken);
-      
-             // Redirection seulement après un délai pour permettre à l'état de se mettre à jour
-       setTimeout(() => {
-         navigate("/dashboard");
-       }, 4000);
+      // Attendre un peu avant le login pour s'assurer que le token est bien sauvegardé
+      setTimeout(() => {
+        // Login après avoir mis à jour l'état
+        login(utilisateur, authToken);
+        
+        // Redirection après un délai supplémentaire
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 2000);
+      }, 1000);
       
     } catch (err) {
       setVerificationStatus('error');

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Sparkles } from 'lucide-react';
 
 const Navbar = () => {
     const [state, setState] = useState(false);
@@ -24,16 +24,21 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="bg-background w-full top-0 z-20 sticky border-b border-border">
+        <nav className="bg-background/95 backdrop-blur-sm w-full top-0 z-20 sticky border-b border-border/50 shadow-sm">
             <div className="items-center px-4 max-w-screen-xl mx-auto md:flex md:px-8">
                 <div className="flex items-center justify-between py-3 md:py-5 md:block">
-                    <Link to={isAuthenticated ? "/dashboard" : "/"}>
-                        <h1 className="text-2xl font-bold text-text-primary">MoneyWise</h1>
+                    <Link to={isAuthenticated ? "/dashboard" : "/"} className="group">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
+                                MoneyWise
+                            </h1>
+                            <Sparkles className="w-5 h-5 text-primary opacity-60" />
+                        </div>
                     </Link>
                     <div className="md:hidden flex items-center space-x-2">
                         <ThemeToggle />
                         <button
-                            className="text-text-primary outline-none p-2 rounded-md focus:border-gray-400 focus:border"
+                            className="text-text-primary outline-none p-2 rounded-lg hover:bg-primary/10 transition-colors duration-150"
                             onClick={() => setState(!state)}
                         >
                             {state ? (
@@ -48,30 +53,47 @@ const Navbar = () => {
                         </button>
                     </div>
                 </div>
-                <div className={`flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden'}`}>
-                    {/* Liens de navigation principaux (toujours visibles sur mobile si le menu est ouvert) */}
+                <div className={`flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden md:block'}`}>
+                    {/* Liens de navigation principaux */}
                     <ul className="justify-center items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
                         {navigation.map((item, idx) => (
-                            <li key={idx} className="text-text-secondary hover:text-primary">
-                                <a href={item.path} onClick={() => setState(false)}>{item.title}</a>
+                            <li key={idx}>
+                                <a 
+                                    href={item.path} 
+                                    onClick={() => setState(false)}
+                                    className="text-text-secondary hover:text-primary transition-colors duration-150 font-medium"
+                                >
+                                    {item.title}
+                                </a>
                             </li>
                         ))}
                     </ul>
 
-                    {/* Menu utilisateur pour mobile (affiché en bas si authentifié) */}
+                    {/* Menu utilisateur pour mobile */}
                     {isAuthenticated && (
-                        <div className="md:hidden mt-4 pt-4 border-t border-border">
-                            <ul className="space-y-4">
+                        <div className="md:hidden mt-6 pt-6 border-t border-border/50">
+                            <ul className="space-y-3">
                                 <li>
-                                    <Link to="/dashboard" onClick={() => setState(false)} className="flex items-center gap-x-2 w-full p-2 text-text-secondary rounded-lg hover:bg-primary/10 hover:text-primary">
-                                        <LayoutDashboard size={18} />
-                                        Mon espace
+                                    <Link 
+                                        to="/dashboard" 
+                                        onClick={() => setState(false)} 
+                                        className="flex items-center gap-x-3 w-full p-3 text-text-secondary rounded-lg hover:bg-primary/10 hover:text-primary transition-colors duration-150"
+                                    >
+                                        <div className="p-2 rounded-lg bg-primary/10">
+                                            <LayoutDashboard size={18} />
+                                        </div>
+                                        <span className="font-medium">Mon espace</span>
                                     </Link>
                                 </li>
                                 <li>
-                                    <button onClick={() => {handleLogout(); setState(false);}} className="w-full text-left flex items-center gap-x-2 p-2 text-negative rounded-lg hover:bg-negative/10">
-                                        <LogOut size={18} />
-                                        Se déconnecter
+                                    <button 
+                                        onClick={() => {handleLogout(); setState(false);}} 
+                                        className="w-full text-left flex items-center gap-x-3 p-3 text-negative rounded-lg hover:bg-negative/10 transition-colors duration-150"
+                                    >
+                                        <div className="p-2 rounded-lg bg-negative/10">
+                                            <LogOut size={18} />
+                                        </div>
+                                        <span className="font-medium">Se déconnecter</span>
                                     </button>
                                 </li>
                             </ul>
@@ -85,36 +107,56 @@ const Navbar = () => {
                     </div>
                     {!isAuthenticated ? (
                         <>
-                            <Link to="/login" className="py-2 px-4 text-white bg-primary hover:bg-primary-hover rounded-md shadow">
+                            <Link 
+                                to="/login" 
+                                className="py-2.5 px-6 text-white bg-primary hover:bg-primary-hover rounded-lg shadow-sm transition-colors duration-150 font-medium"
+                            >
                                 Se connecter
                             </Link>
-                            <Link to="/register" className="py-2 px-4 text-text-primary bg-background-surface hover:bg-primary-hover hover:text-white rounded-md shadow">
+                            <Link 
+                                to="/register" 
+                                className="py-2.5 px-6 text-text-primary bg-background-surface hover:bg-primary hover:text-white rounded-lg shadow-sm transition-colors duration-150 font-medium border border-border hover:border-primary"
+                            >
                                 S'inscrire
                             </Link>
                         </>
                     ) : (
                         <div className="relative">
-                            <button onClick={() => setDropdownOpen(!isDropdownOpen)} className="flex items-center gap-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                                <User className="w-6 h-6 text-text-primary" />
-                                <span className="text-text-primary font-medium">{user?.prenom}</span>
+                            <button 
+                                onClick={() => setDropdownOpen(!isDropdownOpen)} 
+                                className="flex items-center gap-x-3 p-3 rounded-lg hover:bg-primary/10 transition-colors duration-150"
+                            >
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                    <User className="w-5 h-5 text-primary" />
+                                </div>
+                                <span className="text-text-primary font-semibold">{user?.prenom}</span>
                             </button>
                             {isDropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-background-surface rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
-                                    <Link to="/dashboard" onClick={() => setDropdownOpen(false)} className="flex items-center gap-x-2 px-4 py-2 text-sm text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <LayoutDashboard size={16} />
-                                        Mon espace
+                                <div className="absolute right-0 mt-2 w-56 bg-background-surface rounded-lg shadow-lg py-2 ring-1 ring-border/50 border border-border/20">
+                                    <Link 
+                                        to="/dashboard" 
+                                        onClick={() => setDropdownOpen(false)} 
+                                        className="flex items-center gap-x-3 px-4 py-3 text-sm text-text-secondary hover:bg-primary/10 hover:text-primary transition-colors duration-150"
+                                    >
+                                        <div className="p-1.5 rounded-lg bg-primary/10">
+                                            <LayoutDashboard size={16} />
+                                        </div>
+                                        <span className="font-medium">Mon espace</span>
                                     </Link>
-                                    <button onClick={handleLogout} className="w-full text-left flex items-center gap-x-2 px-4 py-2 text-sm text-negative hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <LogOut size={16} />
-                                        Se déconnecter
+                                    <button 
+                                        onClick={handleLogout} 
+                                        className="w-full text-left flex items-center gap-x-3 px-4 py-3 text-sm text-negative hover:bg-negative/10 transition-colors duration-150"
+                                    >
+                                        <div className="p-1.5 rounded-lg bg-negative/10">
+                                            <LogOut size={16} />
+                                        </div>
+                                        <span className="font-medium">Se déconnecter</span>
                                     </button>
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
-
-                
             </div>
         </nav>
     );

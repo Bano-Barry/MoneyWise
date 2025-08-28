@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal';
 import type { Category, NewCategory } from '../types';
 
 const CategoriesPage = () => {
+
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,7 +26,7 @@ const CategoriesPage = () => {
         setLoading(true);
         try {
             const data = await getCategories();
-            setCategories(data.categories || []);
+            setCategories(Array.isArray(data) ? data : []);
         } catch (error) {
             toast.error("Erreur lors de la récupération des catégories.");
             console.error(error);

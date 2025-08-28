@@ -1,17 +1,22 @@
 import { useRef, useState } from "react";
 
-const FaqCard = (props: { faqsList: { q: string, a: string }; idx: number }) => {
-    const { faqsList, idx } = props;
+interface FaqCardProps {
+    faqsList: {
+        q: string;
+        a: string;
+    };
+    idx: number;
+}
+
+const FaqCard = ({ faqsList, idx }: FaqCardProps) => {
     const answerElRef = useRef<HTMLDivElement>(null);
     const [state, setState] = useState(false);
     const [answerH, setAnswerH] = useState('0px');
 
     const handleOpenAnswer = () => {
-        if (answerElRef.current) {
-            const answerElH = answerElRef.current.scrollHeight;
-            setState(!state);
-            setAnswerH(`${answerElH}px`);
-        }
+        const answerElH = answerElRef.current?.scrollHeight || 0;
+        setState(!state);
+        setAnswerH(`${answerElH}px`);
     };
 
     return (

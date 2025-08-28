@@ -1,15 +1,63 @@
-import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, MoreVertical } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Transaction, Category } from '../../types';
 
-const transactions = [
-    { type: 'Revenu', amount: '+ 1,200.00 €', description: 'Mission Freelance', date: '15 Juil 2024' },
-    { type: 'Dépense', amount: '- 45.50 €', description: 'Courses alimentaires', date: '14 Juil 2024' },
-    { type: 'Dépense', amount: '- 12.00 €', description: 'Ticket de cinéma', date: '13 Juil 2024' },
-    { type: 'Dépense', amount: '- 80.00 €', description: 'Facture d\'électricité', date: '12 Juil 2024' },
-    { type: 'Revenu', amount: '+ 50.00 €', description: 'Vente en ligne', date: '11 Juil 2024' },
-];
+interface RecentTransactionsProps {
+    transactions?: Transaction[];
+    categories?: Category[];
+    onView?: (transaction: Transaction) => void;
+}
 
-const RecentTransactions = () => {
+const RecentTransactions = ({ 
+    transactions = [], 
+    categories = [],
+    onView 
+}: RecentTransactionsProps) => {
+
+    const formatCurrency = (amount: number | null | undefined): string => {
+        // Contrôle pour éviter NaN
+        const safeAmount = amount && !isNaN(amount) ? amount : 0;
+        
+        return new Intl.NumberFormat('fr-FR', {
+            style: 'currency',
+            currency: 'XOF',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(safeAmount);
+    };
+
+    const formatDate = (dateString: string | null | undefined): string => {
+        if (!dateString) return 'Date inconnue';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Date invalide';
+            
+            return date.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        } catch (error) {
+            return 'Date invalide';
+        }
+    };
+
+    // Fonction pour obtenir la catégorie d'une transaction
+    const getCategoryForTransaction = (transaction: Transaction): Category | undefined => {
+        return categories.find(cat => cat.id === transaction.categorie_id);
+    };
+
+    // Filtrer et sécuriser les transactions
+    const safeTransactions = transactions
+        .filter(transaction => transaction && transaction.id)
+        .map(transaction => ({
+            ...transaction,
+            montant: transaction.montant && !isNaN(transaction.montant) ? transaction.montant : 0,
+            description: transaction.description || 'Description manquante',
+            type: transaction.type || 'depense'
+        }));
+
     return (
         <div className="bg-background-surface p-6 rounded-lg border border-border">
             <div className="flex justify-between items-center mb-4">
@@ -19,31 +67,70 @@ const RecentTransactions = () => {
                 </Link>
             </div>
             <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="text-xs text-text-secondary uppercase border-b border-border">
-                            <th className="py-3 pr-3">Description</th>
-                            <th className="py-3 px-3">Date</th>
-                            <th className="py-3 pl-3 text-right">Montant</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {transactions.map((item, index) => (
-                            <tr key={index} className="border-b border-border last:border-none">
-                                <td className="py-4 pr-3 flex items-center gap-x-2">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.type === 'Revenu' ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
-                                        {item.type === 'Revenu' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
-                                    </div>
-                                    <span className="text-sm font-medium text-text-primary">{item.description}</span>
-                                </td>
-                                <td className="py-4 px-3 text-sm text-text-secondary">{item.date}</td>
-                                <td className={`py-4 pl-3 text-sm font-semibold text-right ${item.type === 'Revenu' ? 'text-positive' : 'text-negative'}`}>
-                                    {item.amount}
-                                </td>
+                {safeTransactions.length === 0 ? (
+                    <div className="text-center py-8 text-text-secondary">
+                        Aucune transaction récente
+                    </div>
+                ) : (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="text-xs text-text-secondary uppercase border-b border-border">
+                                <th className="py-3 pr-3">Description</th>
+                                <th className="py-3 px-3">Catégorie</th>
+                                <th className="py-3 px-3">Date</th>
+                                <th className="py-3 px-3 text-right">Montant</th>
+                                {onView && (
+                                    <th className="py-3 pl-3 text-center">Actions</th>
+                                )}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {safeTransactions.map((transaction) => {
+                                const category = getCategoryForTransaction(transaction);
+                                return (
+                                    <tr key={transaction.id} className="border-b border-border last:border-none">
+                                        <td className="py-4 pr-3 flex items-center gap-x-2">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transaction.type === 'revenu' ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
+                                                {transaction.type === 'revenu' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
+                                            </div>
+                                            <span className="text-sm font-medium text-text-primary">{transaction.description}</span>
+                                        </td>
+                                        <td className="py-4 px-3">
+                                            {category ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{ backgroundColor: category.couleur }}
+                                                    />
+                                                    <span className="text-sm text-text-primary">{category.nom}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm text-text-secondary">Catégorie inconnue</span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-3 text-sm text-text-secondary">{formatDate(transaction.date_transaction)}</td>
+                                        <td className={`py-4 px-3 text-sm font-semibold text-right ${transaction.type === 'revenu' ? 'text-positive' : 'text-negative'}`}>
+                                            {transaction.type === 'revenu' ? '+' : '-'} {formatCurrency(transaction.montant)}
+                                        </td>
+                                        {onView && (
+                                            <td className="py-4 pl-3 text-center">
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button
+                                                        onClick={() => onView(transaction)}
+                                                        className="p-1 text-text-secondary hover:text-primary transition-colors"
+                                                        title="Voir les détails"
+                                                    >
+                                                        <MoreVertical size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     );

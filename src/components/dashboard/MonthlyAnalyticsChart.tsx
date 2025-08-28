@@ -1,22 +1,51 @@
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Jan', revenus: 4000, depenses: 2400 },
-  { name: 'Fév', revenus: 3000, depenses: 1398 },
-  { name: 'Mar', revenus: 2000, depenses: 9800 },
-  { name: 'Avr', revenus: 2780, depenses: 3908 },
-  { name: 'Mai', revenus: 1890, depenses: 4800 },
-  { name: 'Juin', revenus: 2390, depenses: 3800 },
-  { name: 'Juil', revenus: 3490, depenses: 4300 },
-];
+interface MonthlyData {
+  mois: string;
+  revenus: number;
+  depenses: number;
+  solde: number;
+}
 
-const MonthlyAnalyticsChart = () => {
+interface MonthlyAnalyticsChartProps {
+  data: MonthlyData[];
+}
+
+const MonthlyAnalyticsChart = ({ data }: MonthlyAnalyticsChartProps) => {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    console.log('📈 MonthlyAnalyticsChart - Données reçues:', JSON.stringify(data, null, 2));
+
     if (!mounted) {
         return <div className="bg-background-surface p-6 rounded-lg border border-border h-[400px]"></div>; // Placeholder
+    }
+
+    // Transformer les données pour le graphique avec contrôles
+    const chartData = data
+        .filter(item => item && item.mois) // Filtrer les données invalides
+        .map(item => ({
+            name: item.mois || 'Mois inconnu',
+            revenus: item.revenus && !isNaN(item.revenus) ? item.revenus : 0,
+            depenses: item.depenses && !isNaN(item.depenses) ? item.depenses : 0
+        }))
+        .filter(item => item.revenus > 0 || item.depenses > 0); // Ne garder que les mois avec des données
+
+    console.log('📈 MonthlyAnalyticsChart - Données transformées:', JSON.stringify(chartData, null, 2));
+
+    // Si pas de données, afficher un message
+    if (chartData.length === 0) {
+        return (
+            <div className="bg-background-surface p-6 rounded-lg border border-border">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">
+                    Évolution Mensuelle
+                </h3>
+                <div className="flex items-center justify-center h-80 text-text-secondary">
+                    Aucune donnée disponible
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -27,7 +56,7 @@ const MonthlyAnalyticsChart = () => {
             <div style={{ width: '100%', height: 320 }}>
                 <ResponsiveContainer>
                     <BarChart
-                        data={data}
+                        data={chartData}
                         margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--color-border))" />
@@ -36,6 +65,9 @@ const MonthlyAnalyticsChart = () => {
                         <Tooltip
                             cursor={{ fill: 'rgba(var(--color-border), 0.5)' }}
                             contentStyle={{ backgroundColor: 'rgba(var(--color-background-surface))', border: '1px solid rgba(var(--color-border))' }}
+                            formatter={(value: number) => [
+                                `${!isNaN(value) ? value.toLocaleString('fr-FR') : '0'} FCFA`
+                            ]}
                         />
                         <Legend />
                         <Bar dataKey="revenus" fill="rgba(var(--color-positive))" name="Revenus" />

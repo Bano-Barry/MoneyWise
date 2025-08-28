@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
-const DATA = [
-  { name: 'Alimentation', value: 400, color: '#22c55e' },      // vert
-  { name: 'Loyer',        value: 300, color: '#eab308' },      // jaune
-  { name: 'Transport',    value: 300, color: '#06b6d4' },      // cyan
-  { name: 'Loisirs',      value: 200, color: '#8b5cf6' },      // violet
-]
+interface ExpenseData {
+  nom_categorie: string;
+  couleur_categorie: string;
+  montant_total: string;
+  nombre_transactions: number;
+}
+
+interface ExpensePieChartProps {
+  data: ExpenseData[];
+}
 
 const Label = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
   if (percent < 0.05) return null
@@ -22,11 +26,43 @@ const Label = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => 
   )
 }
 
-export default function ExpensePieChart () {
+export default function ExpensePieChart({ data }: ExpensePieChartProps) {
   /*  ⬇  empêchera tout rendu côté SSR / double rendu strict-mode */
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+  
+  console.log('📊 ExpensePieChart - Données reçues:', JSON.stringify(data, null, 2));
+  
   if (!mounted) return null
+
+  // Transformer les données pour le graphique avec contrôles
+  const chartData = data
+    .filter(item => item && item.nom_categorie && item.montant_total) // Filtrer les données invalides
+    .map(item => {
+      const value = parseFloat(item.montant_total);
+      return {
+        name: item.nom_categorie || 'Catégorie inconnue',
+        value: !isNaN(value) && value > 0 ? value : 0,
+        color: item.couleur_categorie || '#6B7280' // Couleur par défaut si manquante
+      };
+    })
+    .filter(item => item.value > 0); // Ne garder que les valeurs positives
+
+  console.log('📊 ExpensePieChart - Données transformées:', JSON.stringify(chartData, null, 2));
+
+  // Si pas de données, afficher un message
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-background-surface p-6 rounded-lg border border-border">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">
+          Répartition des dépenses
+        </h3>
+        <div className="flex items-center justify-center h-80 text-text-secondary">
+          Aucune donnée disponible
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background-surface p-6 rounded-lg border border-border">
@@ -37,15 +73,20 @@ export default function ExpensePieChart () {
       <div style={{ width: '100%', height: 320 }}>
         <ResponsiveContainer>
           <PieChart>
-            <Pie data={DATA}
+            <Pie data={chartData}
                  dataKey="value"
                  cx="50%" cy="50%"
                  outerRadius={140}
                  labelLine={false}
                  label={Label}>
-              {DATA.map((e, i) => <Cell key={i} fill={e.color}/>)}
+              {chartData.map((e, i) => <Cell key={i} fill={e.color}/>)}
             </Pie>
-            <Tooltip formatter={(v: number, n: string) => [`${v} €`, n]} />
+            <Tooltip 
+              formatter={(v: number, n: string) => [
+                `${!isNaN(v) ? v.toLocaleString('fr-FR') : '0'} FCFA`, 
+                n
+              ]} 
+            />
             {/* <Legend />   */}
           </PieChart>
         </ResponsiveContainer>

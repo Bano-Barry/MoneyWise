@@ -34,13 +34,19 @@ export const getProfilePhotoUrl = (photoData: string | null): string | null => {
     const parsed = JSON.parse(photoData);
     if (parsed.type === 'local') {
       // En développement, utiliser l'URL relative
-      return `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/profil/photo/${parsed.url.split('/').pop()}`;
+      const filename = parsed.url.split('/').pop();
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/profil/photo/${filename}`;
     } else {
       // En production, utiliser l'URL Cloudinary
       return parsed.url;
     }
   } catch {
-    // Si ce n'est pas du JSON, c'est probablement une URL directe
+    // Si ce n'est pas du JSON, c'est probablement un chemin local direct
+    if (photoData.startsWith('uploads/')) {
+      const filename = photoData.split('/').pop();
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/profil/photo/${filename}`;
+    }
+    // Sinon, c'est probablement une URL directe
     return photoData;
   }
 };
