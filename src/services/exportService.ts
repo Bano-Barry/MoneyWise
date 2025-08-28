@@ -1,6 +1,11 @@
 import axios from 'axios';
+import api from './api';
+import type { ExportConfig } from '../types';
+  
+// Configuration de l'API - utiliser l'URL Render par défaut
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://moneywise-backend-187q.onrender.com/api';
 
-<<<<<<< HEAD
+
 // Export des transactions
 export const exportTransactions = async (config: ExportConfig): Promise<any> => {
   const { format, startDate, endDate } = config;
@@ -32,9 +37,12 @@ export const exportReports = async (config: ExportConfig): Promise<any> => {
   const url = format === 'csv' 
     ? `/export/reports/csv?${params.toString()}`
     : `/export/reports/pdf?${params.toString()}`;
-=======
-// Configuration de l'API - utiliser l'URL Render par défaut
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://moneywise-backend-187q.onrender.com/api';
+
+  const response = await api.get(url, {
+    responseType: 'blob'
+  });
+  return response;
+};
 
 // Interface pour les paramètres d'export
 interface ExportParams {
@@ -140,7 +148,6 @@ class ExportService {
   // Export des transactions - tous formats
   async exportTransactions(params: ExportParams, format: 'pdf' | 'csv' | 'json'): Promise<void> {
     const { startDate, endDate, type } = params;
->>>>>>> 14d6fce4e881af80553881679e6102046d250fca
     
     // Validation des paramètres
     if (!startDate || !endDate) {
